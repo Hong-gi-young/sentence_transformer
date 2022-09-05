@@ -4,24 +4,18 @@ import time
 from bs4 import BeautifulSoup
 import numpy as np
 import pandas as pd
-import gensim
 import time
-from gensim import corpora
-import pyLDAvis.gensim_models
-from eunjeon import Mecab
 import random
 import warnings
 import itertools
-from wordcloud import WordCloud
 import matplotlib.pyplot as plt
-from collections import Counter
 warnings.filterwarnings('ignore')
 
 
 chrome_options = webdriver.ChromeOptions()
-chrome_options.add_argument('--headless')
-chrome_options.add_argument('--no-sandbox')
-chrome_options.add_argument('--disable-dev-shm-usage')
+# chrome_options.add_argument('--headless')
+# chrome_options.add_argument('--no-sandbox')
+# chrome_options.add_argument('--disable-dev-shm-usage')
 driver = webdriver.Chrome('chromedriver.exe', chrome_options=chrome_options)
 
 #target of crawling
