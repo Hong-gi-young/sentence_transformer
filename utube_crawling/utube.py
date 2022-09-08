@@ -21,18 +21,25 @@ driver = webdriver.Chrome('chromedriver.exe', chrome_options=chrome_options)
 #target of crawling
 data_list = []
 driver.get("https://www.youtube.com/watch?v=QndOyQtTHUQ")
-time.sleep(4)
-
+time.sleep(10)
+first_page = driver.execute_script("return document.documentElement.scrollHeight")
 # 스크롤 내리기
 def scroll_down(driver):
     last_page_height = driver.execute_script("return document.documentElement.scrollHeight")
+    
     # while True:
     driver.execute_script("window.scrollTo(0, document.documentElement.scrollHeight);")
     time.sleep(3)
     new_page_height = driver.execute_script("return document.documentElement.scrollHeight")
+    
         # if new_page_height == last_page_height:
         #     break
-        
+
+#스크롤 다운
+scroll_down(driver)
+time.sleep(1)
+driver.execute_script("window.scrollTo(0,500)")
+time.sleep(3)
 # 동영상제목
 html = driver.page_source
 soup = BeautifulSoup(html,'html.parser')
@@ -50,18 +57,26 @@ print(name)
 
 # 조회수
 view_counts = soup.find('span',class_='view-count style-scope ytd-video-view-count-renderer').get_text().split(' ')[1]
-print(view_counts)
+print('조회수',view_counts)
 
 # 영상 좋아요 수
 good_counts = soup.find('yt-formatted-string',class_='style-scope ytd-toggle-button-renderer style-text').get_text()
-print(good_counts)
+print('좋아요',good_counts)
 
-#스크롤 다운
-scroll_down(driver)
 
 # 댓글 크롤링
-comments = soup.findall('ytd-comment-thread-renderer')
+comments = soup.find('ytd-app').find('div',class_='style-scope ytd-app').find('ytd-page-manager',class_='style-scope ytd-app').find('div',id='columns').findAll('ytd-comment-thread-renderer')
+# print(comments)
 for comment in comments:
+    
+    #댓글 text
+    print('\n')
+    text = comment.find('div',{"id":'comment-content','class':'style-scope ytd-comment-renderer'}).get_text().replace('자세히 보기','').replace('간략히','').replace('\n','') .strip()
+    print('text',text)
+    
+    #작성자
+    author = comment.find('a',id='author-text').get_text().strip()
+    print('작성자',author)
     
 ## id
 ## 공감
