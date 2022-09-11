@@ -9,6 +9,8 @@ import random
 import warnings
 import itertools
 import matplotlib.pyplot as plt
+from datetime import datetime,timedelta
+from dateutil.relativedelta import relativedelta
 warnings.filterwarnings('ignore')
 
 
@@ -34,6 +36,9 @@ def scroll_down(driver):
     
         # if new_page_height == last_page_height:
         #     break
+
+# 시간체크
+now = datetime.now()
 
 #스크롤 다운
 scroll_down(driver)
@@ -78,5 +83,34 @@ for comment in comments:
     author = comment.find('a',id='author-text').get_text().strip()
     print('작성자',author)
     
-## id
-## 공감
+    # 공감
+    agree_counts = comment.find('span',class_='style-scope ytd-comment-action-buttons-renderer').get_text().strip()
+    print('공감',agree_counts)
+    
+    #시간 크롤링
+    original_times = comment.find('a',class_='yt-simple-endpoint style-scope yt-formatted-string').get_text().replace('(수정됨)','').strip()
+    print('시간',original_times)
+    
+    #날짜로 변환
+    if "년" in original_times:
+        year = original_times.split('년')[0]
+        times = str(now - relativedelta(years=int(year))).split(" ")[0]
+        print("년 단위:",times)
+        
+    elif "개월" in original_times:
+        month = original_times.split('개월')[0]
+        times = str(now - relativedelta(months=int(month))).split(" ")[0]       
+        print("개월 단위:",times)
+        
+    elif "주" in original_times:
+        month = original_times.split('주')[0]
+        times = str(now - relativedelta(weeks=int(month))).split(" ")[0]       
+        print("주 단위:",times)
+        
+    elif "일" in original_times:
+        month = original_times.split('일')[0]
+        times = str(now - relativedelta(days=int(month))).split(" ")[0]    
+        print("일 단위:",times) 
+    else:
+        times = str(now).split(" ")[0]     
+        print("초:",times)
