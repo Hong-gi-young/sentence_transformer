@@ -30,6 +30,19 @@ driver.get("https://www.youtube.com/watch?v=QndOyQtTHUQ")
 time.sleep(10)
 first_page = driver.execute_script("return document.documentElement.scrollHeight")
 
+# 영상재상 중지
+def play_stop(driver):
+    driver.implicitly_wait(100)
+    time.sleep(60)
+    html = driver.page_source
+    soup = BeautifulSoup(html,'html.parser')
+    temp = soup.find('button',class_='ytp-play-button ytp-button')['title'].split(' ')[0]
+    if temp =='재생':
+        driver.find_element_by_xpath('//*[@id="movie_player"]/div[29]/div[2]/div[1]/button').click()
+        time.sleep(1)
+    else:
+        pass
+    
 # 스크롤 내리기
 def scroll_downs(driver):
     last_height = driver.execute_script("return document.body.scrollHeight")
@@ -91,6 +104,9 @@ def scroll_downs(driver):
 # 시간체크
 now = datetime.now()
 
+# 영상정지
+play_stop(driver)
+    
 #스크롤 다운
 scroll_down(driver)
 time.sleep(1)
