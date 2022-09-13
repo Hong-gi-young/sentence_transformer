@@ -15,9 +15,12 @@ warnings.filterwarnings('ignore')
 
 
 chrome_options = webdriver.ChromeOptions()
-chrome_options.add_argument('--headless')
+# chrome_options.add_argument('--headless')
 chrome_options.add_argument('--no-sandbox')
-chrome_options.add_argument('--disable-dev-shm-usage')
+chrome_options.add_experimental_option('excludeSwitches', ['enable-logging'])
+chrome_options.add_argument('--disable-gpu')  
+# chrome_options.add_argument('--disable-dev-shm-usage')
+# chrome_options.add_argument('--disable-software-rasterizer')
 driver = webdriver.Chrome('chromedriver.exe', chrome_options=chrome_options)
 
 #target of crawling
@@ -26,28 +29,53 @@ driver.get("https://www.youtube.com/watch?v=QndOyQtTHUQ")
 time.sleep(10)
 first_page = driver.execute_script("return document.documentElement.scrollHeight")
 # 스크롤 내리기
-def scroll_down(driver):
+def scroll_downs(driver):
     last_page_height = driver.execute_script("return document.documentElement.scrollHeight")
     
-    # while True:
     driver.execute_script("window.scrollTo(0, document.documentElement.scrollHeight);")
+    time.sleep(2)
+    driver.execute_script("window.scrollTo(0,500)")
     time.sleep(3)
-    new_page_height = driver.execute_script("return document.documentElement.scrollHeight")
+    while True:
+        driver.execute_script("window.scrollTo(0, document.documentElement.scrollHeight);")
+        time.sleep(3)
+        new_page_height = driver.execute_script("return document.documentElement.scrollHeight")
+        print('스크롤 내리기')
+        if new_page_height == last_page_height:
+            print("끝")
+            break
+            
+def scroll_down(driver):
+    before_h = driver.execute_script("return window.scrollY")
     
-        # if new_page_height == last_page_height:
-        #     break
+    # 무한 스크롤
+    while True:
 
+        # 맨 아래로 스크롤을 내린다.
+        driver.find_element_by_css_selector("body").send_keys(Keys.END)
+        
+        # 스크롤 사이 페이지 로딩 시간
+        time.sleep(2.5)
+        
+        # 스크롤 후 높이
+        after_h = driver.execute_script("return window.scrollY")
+        if after_h == before_h:
+            break
+        before_h = after_h
+    
 # 시간체크
 now = datetime.now()
 
 #스크롤 다운
 scroll_down(driver)
 time.sleep(1)
-driver.execute_script("window.scrollTo(0,500)")
-time.sleep(3)
+# driver.execute_script("window.scrollTo(0,500)")
+# time.sleep(3)
 # 동영상제목
+print('페이지소스 받아오기')
 html = driver.page_source
 soup = BeautifulSoup(html,'html.parser')
+print('페이지소스 통과')
 title = soup.find("script",class_='style-scope ytd-player-microformat-renderer').get_text() #뽑을수 있는 데이터는 다뽑자
 # title = eval(title)
 # print(type(title))
@@ -71,7 +99,7 @@ print('좋아요',good_counts)
 
 # 댓글 크롤링
 comments = soup.find('ytd-app').find('div',class_='style-scope ytd-app').find('ytd-page-manager',class_='style-scope ytd-app').find('div',id='columns').findAll('ytd-comment-thread-renderer')
-# print(comments)
+
 for comment in comments:
     
     #댓글 text
@@ -114,3 +142,5 @@ for comment in comments:
     else:
         times = str(now).split(" ")[0]     
         print("초:",times)
+        
+print('댓글총 갯수',len(comments))
