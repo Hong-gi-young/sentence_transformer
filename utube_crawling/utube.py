@@ -10,6 +10,7 @@ import warnings
 import itertools
 import matplotlib.pyplot as plt
 from datetime import datetime,timedelta
+from selenium.webdriver.common.keys import Keys
 from dateutil.relativedelta import relativedelta
 warnings.filterwarnings('ignore')
 
@@ -28,24 +29,48 @@ data_list = []
 driver.get("https://www.youtube.com/watch?v=QndOyQtTHUQ")
 time.sleep(10)
 first_page = driver.execute_script("return document.documentElement.scrollHeight")
+
 # 스크롤 내리기
 def scroll_downs(driver):
+    last_height = driver.execute_script("return document.body.scrollHeight")
+
+    while True:
+        new_height = driver.execute_script("return document.body.scrollHeight")
+        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+        time.sleep(3)
+        if new_height == last_height:
+                try:
+                    driver.execute_script("window.scrollTo(document.body.scrollHeight, 0);")
+                except:
+                    break
+        last_height = new_height
+
+def scroll_down(driver):
     last_page_height = driver.execute_script("return document.documentElement.scrollHeight")
     
     driver.execute_script("window.scrollTo(0, document.documentElement.scrollHeight);")
     time.sleep(2)
     driver.execute_script("window.scrollTo(0,500)")
     time.sleep(3)
+    
     while True:
         driver.execute_script("window.scrollTo(0, document.documentElement.scrollHeight);")
         time.sleep(3)
         new_page_height = driver.execute_script("return document.documentElement.scrollHeight")
         print('스크롤 내리기')
         if new_page_height == last_page_height:
-            print("끝")
-            break
+            # 중간에 한번 끊기는걸 방지하기위하여 기존 코드는 맨 위로 올렸다가 다시 내리는 작업을 진행함
+            # 아래 코드는 한번도 스크롤 내리는 방법
+            before_h = driver.execute_script("return window.scrollY")
+            driver.find_element_by_css_selector("body").send_keys(Keys.END)
+            after_h = driver.execute_script("return window.scrollY")
+            if before_h == after_h:
+                break 
+        last_page_height = new_page_height
+
             
-def scroll_down(driver):
+            
+def scroll_downs(driver):
     before_h = driver.execute_script("return window.scrollY")
     
     # 무한 스크롤
@@ -55,7 +80,7 @@ def scroll_down(driver):
         driver.find_element_by_css_selector("body").send_keys(Keys.END)
         
         # 스크롤 사이 페이지 로딩 시간
-        time.sleep(2.5)
+        time.sleep(4)
         
         # 스크롤 후 높이
         after_h = driver.execute_script("return window.scrollY")
@@ -69,17 +94,13 @@ now = datetime.now()
 #스크롤 다운
 scroll_down(driver)
 time.sleep(1)
-# driver.execute_script("window.scrollTo(0,500)")
-# time.sleep(3)
+
 # 동영상제목
 print('페이지소스 받아오기')
 html = driver.page_source
 soup = BeautifulSoup(html,'html.parser')
 print('페이지소스 통과')
-title = soup.find("script",class_='style-scope ytd-player-microformat-renderer').get_text() #뽑을수 있는 데이터는 다뽑자
-# title = eval(title)
-# print(type(title))
-# print(title['name'])
+title = soup.find("script",class_='style-scope ytd-player-microformat-renderer').get_text() 
 
 # 구독자 수
 counts = soup.find('yt-formatted-string',id='owner-sub-count').get_text()
@@ -93,18 +114,22 @@ view_counts = soup.find('span',class_='view-count style-scope ytd-video-view-cou
 print('조회수',view_counts)
 
 # 영상 좋아요 수
-good_counts = soup.find('yt-formatted-string',class_='style-scope ytd-toggle-button-renderer style-text').get_text()
+try:
+    good_counts = soup.find('yt-formatted-string',class_='style-scope ytd-toggle-button-renderer style-text').get_text()
+except:
+    good_counts = soup.find('span',class_='yt-core-attributed-string yt-core-attributed-string--white-space-no-wrap').get_text()
 print('좋아요',good_counts)
-
 
 # 댓글 크롤링
 comments = soup.find('ytd-app').find('div',class_='style-scope ytd-app').find('ytd-page-manager',class_='style-scope ytd-app').find('div',id='columns').findAll('ytd-comment-thread-renderer')
 
+number = 0
 for comment in comments:
-    
+    number += 1 
     #댓글 text
     print('\n')
     text = comment.find('div',{"id":'comment-content','class':'style-scope ytd-comment-renderer'}).get_text().replace('자세히 보기','').replace('간략히','').replace('\n','') .strip()
+    print('번호',number)
     print('text',text)
     
     #작성자
@@ -118,6 +143,7 @@ for comment in comments:
     #시간 크롤링
     original_times = comment.find('a',class_='yt-simple-endpoint style-scope yt-formatted-string').get_text().replace('(수정됨)','').strip()
     print('시간',original_times)
+    
     
     #날짜로 변환
     if "년" in original_times:
