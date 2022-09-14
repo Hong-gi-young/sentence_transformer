@@ -26,7 +26,7 @@ driver = webdriver.Chrome('chromedriver.exe', chrome_options=chrome_options)
 
 #target of crawling
 data_list = []
-driver.get("https://www.youtube.com/watch?v=QndOyQtTHUQ")
+driver.get("https://www.youtube.com/watch?v=gS5ZD9D6qHk") #https://www.youtube.com/watch?v=QndOyQtTHUQ
 time.sleep(10)
 first_page = driver.execute_script("return document.documentElement.scrollHeight")
 
@@ -42,7 +42,13 @@ def play_stop(driver):
         time.sleep(1)
     else:
         pass
-    
+
+def scroll_down_new(driver):
+    e = driver.find_element_by_tag_name('body')
+    for i in range(20):
+        e.send_keys(Keys.PAGE_DOWN)
+        time.sleep(1)
+
 # 스크롤 내리기
 def scroll_downs(driver):
     last_height = driver.execute_script("return document.body.scrollHeight")
@@ -65,6 +71,8 @@ def scroll_down(driver):
     time.sleep(2)
     driver.execute_script("window.scrollTo(0,500)")
     time.sleep(3)
+    
+    scroll_down_new(driver) # 막대바로 내리기
     
     while True:
         driver.execute_script("window.scrollTo(0, document.documentElement.scrollHeight);")
@@ -105,7 +113,7 @@ def scroll_downs(driver):
 now = datetime.now()
 
 # 영상정지
-play_stop(driver)
+# play_stop(driver)
     
 #스크롤 다운
 scroll_down(driver)
@@ -116,13 +124,20 @@ print('페이지소스 받아오기')
 html = driver.page_source
 soup = BeautifulSoup(html,'html.parser')
 print('페이지소스 통과')
+
 title = soup.find("script",class_='style-scope ytd-player-microformat-renderer').get_text() 
+title = eval(title)['name']
+print('title',title)
 
 # 구독자 수
 counts = soup.find('yt-formatted-string',id='owner-sub-count').get_text()
 print(counts)
+
 # 채널명
-name = soup.find('div',class_='style-scope ytd-channel-name').find('a',class_='yt-simple-endpoint style-scope yt-formatted-string').get_text()
+try:
+    name = soup.find('div',class_='style-scope ytd-channel-name').find('a',class_='yt-simple-endpoint style-scope yt-formatted-string').get_text()
+except:
+    name = soup.find('yt-formatted-string',class_='style-scope ytd-channel-name complex-string').find('a',class_='yt-simple-endpoint style-scope yt-formatted-string').get_text()
 print(name)
 
 # 조회수
