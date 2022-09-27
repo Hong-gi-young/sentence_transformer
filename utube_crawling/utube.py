@@ -13,8 +13,6 @@ from datetime import datetime,timedelta
 from selenium.webdriver.common.keys import Keys
 from dateutil.relativedelta import relativedelta
 warnings.filterwarnings('ignore')
-
-
 chrome_options = webdriver.ChromeOptions()
 # chrome_options.add_argument('--headless')
 chrome_options.add_argument('--no-sandbox')
@@ -23,10 +21,8 @@ chrome_options.add_argument('--disable-gpu')
 # chrome_options.add_argument('--disable-dev-shm-usage')
 # chrome_options.add_argument('--disable-software-rasterizer')
 driver = webdriver.Chrome('chromedriver.exe', chrome_options=chrome_options)
-one_crawling = True
 
-
-def soup_find():
+def soup_find(driver):
     print('페이지소스 받아오기')
     html = driver.page_source
     soup = BeautifulSoup(html,'html.parser')
@@ -99,11 +95,11 @@ def translation(text):
     driver.switch_to.window(driver.window_handles[0])
     return tans_text
 
-if one_crawling:
+def one_crawling(url="https://www.youtube.com/watch?v=gS5ZD9D6qHk"):
     authors,texts,agree_counts,times = [],[],[],[]
     
     #target of crawling
-    driver.get("https://www.youtube.com/watch?v=gS5ZD9D6qHk") #https://www.youtube.com/watch?v=QndOyQtTHUQ
+    driver.get(url) #https://www.youtube.com/watch?v=QndOyQtTHUQ
     time.sleep(10)
     first_page = driver.execute_script("return document.documentElement.scrollHeight")
 
@@ -111,14 +107,14 @@ if one_crawling:
     now = datetime.now()
 
     # 영상정지
-    # play_stop()
+    play_stop()
         
     #스크롤 다운
     scroll_down()
     time.sleep(1)
 
     # 페이지 소스
-    soup=soup_find()
+    soup=soup_find(driver)
 
     # 동영상제목
     title = soup.find("script",class_='style-scope ytd-player-microformat-renderer').get_text() 
@@ -176,31 +172,47 @@ if one_crawling:
         #날짜로 변환
         if "년" in original_times:
             year = original_times.split('년')[0]
-            time = str(now - relativedelta(years=int(year))).split(" ")[0]
-            print("년 단위:",time)
+            year = str(now - relativedelta(years=int(year))).split(" ")[0]
+            print("년 단위:",year)
+            times.append(year)
             
         elif "개월" in original_times:
             month = original_times.split('개월')[0]
-            time = str(now - relativedelta(months=int(month))).split(" ")[0]       
-            print("개월 단위:",time)
+            month = str(now - relativedelta(months=int(month))).split(" ")[0]       
+            print("개월 단위:",month)
+            times.append(month)
             
         elif "주" in original_times:
-            month = original_times.split('주')[0]
-            time = str(now - relativedelta(weeks=int(month))).split(" ")[0]       
-            print("주 단위:",time)
+            week = original_times.split('주')[0]
+            week = str(now - relativedelta(weeks=int(week))).split(" ")[0]       
+            print("주 단위:",week)
+            times.append(week)
             
         elif "일" in original_times:
-            month = original_times.split('일')[0]
-            time = str(now - relativedelta(days=int(month))).split(" ")[0]    
-            print("일 단위:",time) 
+            day = original_times.split('일')[0]
+            day = str(now - relativedelta(days=int(day))).split(" ")[0]    
+            print("일 단위:",day) 
+            times.append(day)
         else:
-            time = str(now).split(" ")[0]     
-            print("초:",time)
-        times.append(time)
+            second = str(now).split(" ")[0]     
+            print("초:",second)
+            times.append(second)
     print('댓글총 갯수',len(comments))
-    information = {'유튜버':name,"구독자":counts,"영상제목":title,'조회수':view_counts,'좋아요':good_count,'작성자':authors,'댓글':texts,'공감':agree_counts,'시간':times}
+    information = {'유튜버':name,
+                   "구독자":counts,
+                   "영상제목":title,
+                   '조회수':view_counts,
+                   '좋아요':good_count,
+                   '작성자':authors,
+                   '댓글':texts,
+                   '공감':agree_counts,
+                   '시간':times}
     df = pd.DataFrame(information)
     
     #저장하기
-    df.to_excel('one_crawling.xlsx')
+    # df.to_excel('one_crawling.xlsx')
+    # driver.close()
+    return df
 
+if __name__=='__main__':
+    one_crawling()
