@@ -93,17 +93,31 @@ def scroll_down():
 
 #3. URL 수집 
 # def urls_crawling(counts=np.inf):
+counts=2 #np.inf # 특정 갯수 만큼 가져오기
 urls = []
 soup = soup_find(driver)
 information_all = soup.find('div',{'id':'contents','class':'style-scope ytd-item-section-renderer'}).find_all('ytd-grid-video-renderer',class_='style-scope ytd-grid-renderer')
 for idx,inform in enumerate(information_all):
-    idx = idx+1 
+    
     url = inform.find('a',class_='yt-simple-endpoint inline-block style-scope ytd-thumbnail')['href']
     url = "https://www.youtube.com"+url
+    
+    #short 걸러내기
+    # if 'shorts' in url:
+    #     continue
+    idx = idx+1 
     urls.append(url)
     print(url)
+    print('idx',idx)
     if counts == idx: 
         break
+    
+total_df = pd.DataFrame()
+for url in urls:
+    df = one_crawling(url)
+    # concat 실행
+    total_df = pd.concat([total_df,df])
+    print('pass')
 driver.close()
     
     
@@ -112,7 +126,6 @@ driver.close()
     
     
 # def main():
-# # df = one_crawling() 실행
 # total = pd.DataFrame()
 # for url in urls[::]:
 #     # 정보 긁어오기
