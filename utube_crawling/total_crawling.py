@@ -95,24 +95,35 @@ def scroll_down():
 # def urls_crawling(counts=np.inf):
 counts=2 #np.inf # 특정 갯수 만큼 가져오기
 urls = []
+original_url = []
+shorts_url = []
+total_df = pd.DataFrame()
 soup = soup_find(driver)
 information_all = soup.find('div',{'id':'contents','class':'style-scope ytd-item-section-renderer'}).find_all('ytd-grid-video-renderer',class_='style-scope ytd-grid-renderer')
 for idx,inform in enumerate(information_all):
     
+    #url
     url = inform.find('a',class_='yt-simple-endpoint inline-block style-scope ytd-thumbnail')['href']
     url = "https://www.youtube.com"+url
     
-    #short 걸러내기
-    # if 'shorts' in url:
-    #     continue
+    #shorts 있는지 없는지
+    shorts = inform.find('span', {"id":'text',"class":"style-scope ytd-thumbnail-overlay-time-status-renderer"}).get_text().strip() # 일반영상에는 분:초 출력
+    if shorts != "SHORTS":
+        urls.append(url)
+    
+    else:
+        shorts_url.append(url)
+        
+        #조회수
+        inform.find('span',class_='style-scope ytd-grid-video-renderer').get_text().split(' ')[1]
+        #구독자수
+        
     idx = idx+1 
-    urls.append(url)
     print(url)
     print('idx',idx)
     if counts == idx: 
         break
     
-total_df = pd.DataFrame()
 for url in urls:
     df = one_crawling(url)
     # concat 실행
