@@ -13,6 +13,7 @@ from datetime import datetime,timedelta
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from dateutil.relativedelta import relativedelta
+from datetime import datetime,timedelta
 from utube import *
 
 
@@ -64,9 +65,14 @@ def shorts_scroll(driver):
 # url 
 # def url_transform():
 # 동영상 코너로 변환
+authors,texts,agree_counts,times = [],[],[],[]
+
 user_url = "https://www.youtube.com/shorts/Rm1IorQTDbk"
 driver.get(user_url) 
 time.sleep(5)
+
+# 시간체크
+now = datetime.now()
 
 #페이지소스
 soup = soup_find(driver)
@@ -94,18 +100,68 @@ shorts_scroll(driver)
 soup2 = soup_find(driver)
 
 #댓글
+replies = soup2.find('div',{'id':'contents','class':'style-scope ytd-item-section-renderer'}).findAll('ytd-comment-thread-renderer',class_='style-scope ytd-item-section-renderer')
+for reply in replies:
+    text = reply.find('yt-formatted-string',id='content-text').get_text()
+    texts.append(text)
+    print('text:',text)
 
-#작성자
-#공감
-#시간크롤링
-#날짜로 변환
-
+    #작성자
+    author = reply.find('yt-formatted-string',id='text').get_text()
+    authors.append(author)
+    print('작성자:',author)
+    
+    #공감
+    agree_count = reply.find('span',{'id':'vote-count-middle','class':'style-scope ytd-comment-action-buttons-renderer'}).get_text()
+    agree_counts.append(agree_count)
+    print('공감수:',agree_count)
+    
+    #시간크롤링
+    original_times = reply.find('a',class_='yt-simple-endpoint style-scope yt-formatted-string').get_text()
+    
+    #날짜로 변환
+    if "년" in original_times:
+        year = original_times.split('년')[0]
+        year = str(now - relativedelta(years=int(year))).split(" ")[0]
+        print("년 단위:",year)
+        times.append(year)
+        
+    elif "개월" in original_times:
+        month = original_times.split('개월')[0]
+        month = str(now - relativedelta(months=int(month))).split(" ")[0]       
+        print("개월 단위:",month)
+        times.append(month)
+        
+    elif "주" in original_times:
+        week = original_times.split('주')[0]
+        week = str(now - relativedelta(weeks=int(week))).split(" ")[0]       
+        print("주 단위:",week)
+        times.append(week)
+        
+    elif "일" in original_times:
+        day = original_times.split('일')[0]
+        day = str(now - relativedelta(days=int(day))).split(" ")[0]    
+        print("일 단위:",day) 
+        times.append(day)
+    else:
+        second = str(now).split(" ")[0]     
+        print("초:",second)
+        times.append(second)
+print('댓글총 갯수',len(replies))
+# information = {'유튜버':name,
+#                 "구독자":counts,
+#                 "영상제목":title,
+#                 '조회수':view_counts,
+#                 '좋아요':good_count,
+#                 '작성자':authors,
+#                 '댓글':texts,
+#                 '공감':agree_counts,
+#                 '시간':times}
+# df = pd.DataFrame(information)
 
 """
 1. short 구별하는 문자 출력
 2. short로 이동후 크롤링.
 
 * short url 따로 담아서 shrot만 or 동영상만 할수 있도록 조건문 처리.
-
-
 """
