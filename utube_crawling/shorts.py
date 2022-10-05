@@ -65,99 +65,122 @@ def shorts_scroll(driver):
 # url 
 # def url_transform():
 # 동영상 코너로 변환
-authors,texts,agree_counts,times = [],[],[],[]
 
-user_url = "https://www.youtube.com/shorts/Rm1IorQTDbk"
-driver.get(user_url) 
-time.sleep(5)
+def shorts_crawling():
+    authors,texts,agree_counts,times = [],[],[],[]
+    user_url = "https://www.youtube.com/shorts/Rm1IorQTDbk"
+    driver.get(user_url) 
+    time.sleep(5)
 
-# 시간체크
-now = datetime.now()
+    # 시간체크
+    now = datetime.now()
 
-#페이지소스
-soup = soup_find(driver)
+    #페이지소스
+    soup = soup_find(driver)
 
-#동영상제목
-title = soup.find('h2',class_='title style-scope ytd-reel-player-header-renderer').get_text().strip()
-print('title',title)
-#채널명
-name = soup.find('div',{'id':'channel-container','class':'style-scope ytd-reel-player-header-renderer'}).find('a',class_='yt-simple-endpoint style-scope yt-formatted-string').get_text()
-print('name',name)
+    #동영상제목
+    title = soup.find('h2',class_='title style-scope ytd-reel-player-header-renderer').get_text().strip()
+    print('title',title)
 
-#영상좋아요
-good_count = soup.find('div',{'id':'actions','class':'style-scope ytd-reel-player-overlay-renderer'}).find('yt-formatted-string',class_='style-scope ytd-toggle-button-renderer style-text').get_text()
-print('good_count',good_count)
+    #채널명
+    name = soup.find('div',{'id':'channel-container','class':'style-scope ytd-reel-player-header-renderer'}).find('a',class_='yt-simple-endpoint style-scope yt-formatted-string').get_text()
+    print('name',name)
 
-##댓글 가져오기
-#댓글 클릭
-driver.find_element_by_xpath('//*[@id="comments-button"]').click()
-time.sleep(1)
+    #영상좋아요
+    good_count = soup.find('div',{'id':'actions','class':'style-scope ytd-reel-player-overlay-renderer'}).find('yt-formatted-string',class_='style-scope ytd-toggle-button-renderer style-text').get_text()
+    print('good_count',good_count)
 
-#스크롤
-shorts_scroll(driver)
-
-#페이지소스
-soup2 = soup_find(driver)
-
-#댓글
-replies = soup2.find('div',{'id':'contents','class':'style-scope ytd-item-section-renderer'}).findAll('ytd-comment-thread-renderer',class_='style-scope ytd-item-section-renderer')
-for reply in replies:
-    text = reply.find('yt-formatted-string',id='content-text').get_text()
-    texts.append(text)
-    print('text:',text)
-
-    #작성자
-    author = reply.find('yt-formatted-string',id='text').get_text()
-    authors.append(author)
-    print('작성자:',author)
+    # 설명 클릭
+    driver.find_element_by_xpath('//*[@id="button-shape"]/button/yt-touch-feedback-shape/div/div[2]')
+    time.sleep(2)
+    driver.find_element_by_xpath('//*[@id="items"]/ytd-menu-service-item-renderer/tp-yt-paper-item')
+    time.sleep(1)
     
-    #공감
-    agree_count = reply.find('span',{'id':'vote-count-middle','class':'style-scope ytd-comment-action-buttons-renderer'}).get_text()
-    agree_counts.append(agree_count)
-    print('공감수:',agree_count)
-    
-    #시간크롤링
-    original_times = reply.find('a',class_='yt-simple-endpoint style-scope yt-formatted-string').get_text()
-    
-    #날짜로 변환
-    if "년" in original_times:
-        year = original_times.split('년')[0]
-        year = str(now - relativedelta(years=int(year))).split(" ")[0]
-        print("년 단위:",year)
-        times.append(year)
+    # 조회수
+    view_counts=soup.find('yt-formatted-string',class_='factoid-value style-scope ytd-factoid-renderer').get_text().strip()
+    print('조회수:',view_counts)
+    ##댓글 가져오기
+    #댓글 클릭
+    driver.find_element_by_xpath('//*[@id="comments-button"]').click()
+    time.sleep(1)
+
+    #스크롤
+    shorts_scroll(driver)
+
+    #페이지소스
+    soup2 = soup_find(driver)
+
+    #댓글
+    replies = soup2.find('div',{'id':'contents','class':'style-scope ytd-item-section-renderer'}).findAll('ytd-comment-thread-renderer',class_='style-scope ytd-item-section-renderer')
+    for reply in replies:
+        text = reply.find('yt-formatted-string',id='content-text').get_text().strip()
+        texts.append(text)
+        print('\n')
+        print('text:',text)
+
+        #고정댓글 작성자
+        try: 
+            author = reply.find('yt-formatted-string',{'id':'text','class':'style-scope ytd-channel-name'}).get_text().strip()
+            authors.append(author)
+            print('작성자:',author)
+            
+        #일반 작성자
+        except:
+            author = reply.find('a',{'id':'author-text','class':'yt-simple-endpoint style-scope ytd-comment-renderer'}).find('span',class_=' style-scope ytd-comment-renderer').get_text().strip()
+            authors.append(author)
+            print('작성자:',author)
+                
+        #공감
+        agree_count = reply.find('span',{'id':'vote-count-middle','class':'style-scope ytd-comment-action-buttons-renderer'}).get_text().strip()
+        agree_counts.append(agree_count)
+        print('공감수:',agree_count)
         
-    elif "개월" in original_times:
-        month = original_times.split('개월')[0]
-        month = str(now - relativedelta(months=int(month))).split(" ")[0]       
-        print("개월 단위:",month)
-        times.append(month)
+        #시간크롤링
+        original_times = reply.find('a',class_='yt-simple-endpoint style-scope yt-formatted-string').get_text().strip()
         
-    elif "주" in original_times:
-        week = original_times.split('주')[0]
-        week = str(now - relativedelta(weeks=int(week))).split(" ")[0]       
-        print("주 단위:",week)
-        times.append(week)
-        
-    elif "일" in original_times:
-        day = original_times.split('일')[0]
-        day = str(now - relativedelta(days=int(day))).split(" ")[0]    
-        print("일 단위:",day) 
-        times.append(day)
-    else:
-        second = str(now).split(" ")[0]     
-        print("초:",second)
-        times.append(second)
-print('댓글총 갯수',len(replies))
-# information = {'유튜버':name,
-#                 "구독자":counts,
-#                 "영상제목":title,
-#                 '조회수':view_counts,
-#                 '좋아요':good_count,
-#                 '작성자':authors,
-#                 '댓글':texts,
-#                 '공감':agree_counts,
-#                 '시간':times}
-# df = pd.DataFrame(information)
+        #날짜로 변환
+        if "년" in original_times:
+            year = original_times.split('년')[0]
+            year = str(now - relativedelta(years=int(year))).split(" ")[0]
+            print("년 단위:",year)
+            times.append(year)
+            
+        elif "개월" in original_times:
+            month = original_times.split('개월')[0]
+            month = str(now - relativedelta(months=int(month))).split(" ")[0]       
+            print("개월 단위:",month)
+            times.append(month)
+            
+        elif "주" in original_times:
+            week = original_times.split('주')[0]
+            week = str(now - relativedelta(weeks=int(week))).split(" ")[0]       
+            print("주 단위:",week)
+            times.append(week)
+            
+        elif "일" in original_times:
+            day = original_times.split('일')[0]
+            day = str(now - relativedelta(days=int(day))).split(" ")[0]    
+            print("일 단위:",day) 
+            times.append(day)
+        else:
+            second = str(now).split(" ")[0]     
+            print("초:",second)
+            times.append(second)
+    print('댓글총 갯수',len(replies))
+    information = {'유튜버':name,
+    #                 "구독자":counts,
+                    "영상제목":title,
+    #                 '조회수':view_counts,
+                    '좋아요':good_count,
+                    '작성자':authors,
+                    '댓글':texts,
+                    '공감':agree_counts,
+                    '시간':times}
+    df = pd.DataFrame(information)
+
+    return df
+if __name__ == '__main__':
+    shorts_crawling()
 
 """
 1. short 구별하는 문자 출력
