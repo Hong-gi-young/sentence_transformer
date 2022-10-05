@@ -91,14 +91,22 @@ def shorts_crawling():
     print('good_count',good_count)
 
     # 설명 클릭
-    driver.find_element_by_xpath('//*[@id="button-shape"]/button/yt-touch-feedback-shape/div/div[2]')
+    driver.find_element_by_xpath('//*[@id="menu"]/ytd-menu-renderer').click()
     time.sleep(2)
-    driver.find_element_by_xpath('//*[@id="items"]/ytd-menu-service-item-renderer/tp-yt-paper-item')
+        
+    driver.find_element_by_xpath('//*[@id="items"]/ytd-menu-service-item-renderer').click()
     time.sleep(1)
     
+    
     # 조회수
-    view_counts=soup.find('yt-formatted-string',class_='factoid-value style-scope ytd-factoid-renderer').get_text().strip()
+    soup_temp = soup_find(driver)
+    view_counts = soup_temp.findAll('yt-formatted-string',class_='factoid-value style-scope ytd-factoid-renderer')[1].get_text().strip()
     print('조회수:',view_counts)
+    
+    #닫기 버튼
+    driver.find_element_by_xpath('//*[@id="visibility-button"]').click()
+    time.sleep(2)
+    
     ##댓글 가져오기
     #댓글 클릭
     driver.find_element_by_xpath('//*[@id="comments-button"]').click()
