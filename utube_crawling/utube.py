@@ -133,9 +133,13 @@ def one_crawling(url="https://www.youtube.com/watch?v=gS5ZD9D6qHk"):
     print(name)
 
     # 조회수
-    view_counts = soup.find('span',class_='view-count style-scope ytd-video-view-count-renderer').get_text().split(' ')[1]
-    print('조회수',view_counts)
+    try:
+        view_counts = soup.find('span',class_='view-count style-scope ytd-video-view-count-renderer').get_text().split(' ')[1]
+        print('조회수',view_counts)
 
+    except:
+        pass
+    
     # 영상 좋아요 수
     try:
         good_count = soup.find('yt-formatted-string',class_='style-scope ytd-toggle-button-renderer style-text').get_text()
@@ -214,5 +218,4 @@ def one_crawling(url="https://www.youtube.com/watch?v=gS5ZD9D6qHk"):
     # driver.close()
     return df
 
-if __name__=='__main__':
-    one_crawling()
+# if __name__=='__main__':
