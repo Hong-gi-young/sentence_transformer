@@ -13,10 +13,10 @@ from datetime import datetime,timedelta
 from selenium.webdriver.common.keys import Keys
 from dateutil.relativedelta import relativedelta
 from utube import *
-
+from shorts import shorts_crawling
 warnings.filterwarnings('ignore')
 chrome_options = webdriver.ChromeOptions()
-# chrome_options.add_argument('--headless')
+chrome_options.add_argument('--headless')
 chrome_options.add_argument('--no-sandbox')
 chrome_options.add_experimental_option('excludeSwitches', ['enable-logging'])
 chrome_options.add_argument('--disable-gpu')  
@@ -89,8 +89,11 @@ def scroll_down():
         new_height = driver.execute_script("return document.body.scrollHeight")
         if new_height == last_height:
             break
-        last_height = new_heigh
+        last_height = new_height
 
+    """
+    공통변수 : 조회수(), 구독자수(사이트에서 구하기)
+    """
 #3. URL 수집 
 # def urls_crawling(counts=np.inf):
 counts=2 #np.inf # 특정 갯수 만큼 가져오기
@@ -99,25 +102,20 @@ original_url = []
 shorts_url = []
 total_df = pd.DataFrame()
 soup = soup_find(driver)
+
+
+#구독자수
+counts = soup.find('yt-formatted-string',{'id':'subscriber-count','class':'style-scope ytd-c4-tabbed-header-renderer'}).get_text().replace('구독자','').strip()
+print('구독자 수:',counts)
+
 information_all = soup.find('div',{'id':'contents','class':'style-scope ytd-item-section-renderer'}).find_all('ytd-grid-video-renderer',class_='style-scope ytd-grid-renderer')
 for idx,inform in enumerate(information_all):
     
     #url
     url = inform.find('a',class_='yt-simple-endpoint inline-block style-scope ytd-thumbnail')['href']
     url = "https://www.youtube.com"+url
-    
-    #shorts 있는지 없는지
-    shorts = inform.find('span', {"id":'text',"class":"style-scope ytd-thumbnail-overlay-time-status-renderer"}).get_text().strip() # 일반영상에는 분:초 출력
-    if shorts != "SHORTS":
-        urls.append(url)
-    
-    else:
-        shorts_url.append(url)
-        
-        #조회수
-        inform.find('span',class_='style-scope ytd-grid-video-renderer').get_text().split(' ')[1]
-        #구독자수
-        
+    urls.append(url)
+
     idx = idx+1 
     print(url)
     print('idx',idx)
@@ -125,17 +123,19 @@ for idx,inform in enumerate(information_all):
         break
     
 for url in urls:
-    df = one_crawling(url)
+    print('동영상 크롤링을 시작합니다.')
+    if 'shorts' in url:
+        df = shorts_crawling()
+        df['조회수'] = 
+        df['구독자'] = counts
+    else:
+        df = one_crawling(url)
     # concat 실행
     total_df = pd.concat([total_df,df])
     print('pass')
 driver.close()
-    
-    
-    
-    
-    
-    
+
+
 # def main():
 # total = pd.DataFrame()
 # for url in urls[::]:
@@ -144,5 +144,3 @@ driver.close()
     
 #     # concat 실행
 #     total_df = pd.concat([total,df])
-    
-
