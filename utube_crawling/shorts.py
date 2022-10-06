@@ -97,7 +97,6 @@ def shorts_crawling():
     driver.find_element_by_xpath('//*[@id="items"]/ytd-menu-service-item-renderer').click()
     time.sleep(1)
     
-    
     # 조회수
     soup_temp = soup_find(driver)
     view_counts = soup_temp.findAll('yt-formatted-string',class_='factoid-value style-scope ytd-factoid-renderer')[1].get_text().strip()
@@ -176,9 +175,8 @@ def shorts_crawling():
             times.append(second)
     print('댓글총 갯수',len(replies))
     information = {'유튜버':name,
-    #                 "구독자":counts,
                     "영상제목":title,
-    #                 '조회수':view_counts,
+                    '조회수':view_counts,
                     '좋아요':good_count,
                     '작성자':authors,
                     '댓글':texts,
@@ -187,12 +185,5 @@ def shorts_crawling():
     df = pd.DataFrame(information)
 
     return df
-if __name__ == '__main__':
-    shorts_crawling()
-
-"""
-1. short 구별하는 문자 출력
-2. short로 이동후 크롤링.
-
-* short url 따로 담아서 shrot만 or 동영상만 할수 있도록 조건문 처리.
-"""
+# if __name__ == '__main__':
+#     shorts_crawling()
