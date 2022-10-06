@@ -16,7 +16,7 @@ from utube import *
 from shorts import shorts_crawling
 warnings.filterwarnings('ignore')
 chrome_options = webdriver.ChromeOptions()
-chrome_options.add_argument('--headless')
+# chrome_options.add_argument('--headless')
 chrome_options.add_argument('--no-sandbox')
 chrome_options.add_experimental_option('excludeSwitches', ['enable-logging'])
 chrome_options.add_argument('--disable-gpu')  
@@ -122,17 +122,17 @@ for idx,inform in enumerate(information_all):
     if counts == idx: 
         break
     
-for url in urls:
+for url in urls[:5]:
     print('동영상 크롤링을 시작합니다.')
     if 'shorts' in url:
         df = shorts_crawling()
-        df['조회수'] = 
         df['구독자'] = counts
     else:
         df = one_crawling(url)
     # concat 실행
     total_df = pd.concat([total_df,df])
     print('pass')
+total_df.to_excel('total_df.xlsx')
 driver.close()
 
 
