@@ -100,8 +100,7 @@ def one_crawling(url="https://www.youtube.com/watch?v=gS5ZD9D6qHk"):
     
     #target of crawling
     driver.get(url) #https://www.youtube.com/watch?v=QndOyQtTHUQ
-    time.sleep(10)
-    first_page = driver.execute_script("return document.documentElement.scrollHeight")
+    time.sleep(5)
 
     # 시간체크
     now = datetime.now()
