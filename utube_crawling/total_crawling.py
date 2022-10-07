@@ -29,7 +29,6 @@ user_url = "https://www.youtube.com/c/DickHunter/featured"
 url_splited = user_url.split('/')
 if url_splited[-1] =='featured':
     user_url = user_url.replace('featured', 'videos') 
-    print('user_url:',user_url)
     
 driver.get(user_url) 
 time.sleep(5)
@@ -76,62 +75,77 @@ def videos_select_options(selected_options='업로드한 동영상'):
         uploaded_videos()
         time.sleep(1)
 
-# 스크롤 다운
-
-def scroll_down():
+# 스크롤 내리기
+def scroll_down(driver):
+    # 스크롤 높이 가져옴
+    last_height = driver.execute_script("return document.body.scrollHeight")
+    print('last_height',last_height)
     while True:
         # 끝까지 스크롤 다운
         driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
 
-        time.sleep(3)
+        # 1초 대기
+        time.sleep(1)
 
         # 스크롤 다운 후 스크롤 높이 다시 가져옴
         new_height = driver.execute_script("return document.body.scrollHeight")
+        print('new_height',new_height)
         if new_height == last_height:
             break
         last_height = new_height
 
-    """
-    공통변수 : 조회수(), 구독자수(사이트에서 구하기)
-    """
 #3. URL 수집 
 # def urls_crawling(counts=np.inf):
-counts=2 #np.inf # 특정 갯수 만큼 가져오기
-urls = []
-original_url = []
-shorts_url = []
+scroll_down(driver)
+print('asd')
+crawling_count = 100 #np.inf # 특정 갯수 만큼 가져오기
+urls = [] # 전체 url 리스트
+original_url = [] # 일반 동영상 url
+shorts_url = [] # shorts 동영상 url
 total_df = pd.DataFrame()
 soup = soup_find(driver)
-
 
 #구독자수
 counts = soup.find('yt-formatted-string',{'id':'subscriber-count','class':'style-scope ytd-c4-tabbed-header-renderer'}).get_text().replace('구독자','').strip()
 print('구독자 수:',counts)
 
+#영상 수
 information_all = soup.find('div',{'id':'contents','class':'style-scope ytd-item-section-renderer'}).find_all('ytd-grid-video-renderer',class_='style-scope ytd-grid-renderer')
-for idx,inform in enumerate(information_all):
+
+#갯수 파악
+if crawling_count > len(information_all):
+    print('갯수 미달로 인한 스크롤')
+    scroll_down(driver) # 스크롤 한번씩 내리기
     
+soup = soup_find(driver)
+information_all = soup.find('div',{'id':'contents','class':'style-scope ytd-item-section-renderer'}).find_all('ytd-grid-video-renderer',class_='style-scope ytd-grid-renderer')
+    
+for idx,inform in enumerate(information_all):
     #url
     url = inform.find('a',class_='yt-simple-endpoint inline-block style-scope ytd-thumbnail')['href']
     url = "https://www.youtube.com"+url
     urls.append(url)
 
     idx = idx+1 
-    print(url)
-    print('idx',idx)
-    if counts == idx: 
+    if crawling_count == idx: 
         break
     
-for url in urls[:5]:
-    print('동영상 크롤링을 시작합니다.')
+
+for url in urls:
+    print(f'{url} 동영상 크롤링 시작')
     if 'shorts' in url:
         df = shorts_crawling()
+        shorts_url.append(url) #shorts만 따로 담기
         df['구독자'] = counts
+        
     else:
-        df = one_crawling(url)
+        df = one_crawling(url) 
+        original_url.append(url) #일반동영상 따로 담기
     # concat 실행
     total_df = pd.concat([total_df,df])
-    print('pass')
+    print('\n')
+    
+    
 total_df.to_excel('total_df.xlsx')
 driver.close()
 
