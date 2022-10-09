@@ -1,4 +1,3 @@
-# 크롤링 라이브러리 Import
 from selenium import webdriver
 import time
 from bs4 import BeautifulSoup
@@ -15,6 +14,7 @@ from dateutil.relativedelta import relativedelta
 from utube import *
 from shorts import shorts_crawling
 warnings.filterwarnings('ignore')
+
 chrome_options = webdriver.ChromeOptions()
 # chrome_options.add_argument('--headless')
 chrome_options.add_argument('--no-sandbox')
@@ -22,8 +22,6 @@ chrome_options.add_experimental_option('excludeSwitches', ['enable-logging'])
 chrome_options.add_argument('--disable-gpu')  
 driver = webdriver.Chrome('chromedriver.exe', chrome_options=chrome_options)
 
-# url 
-# def url_transform():
 # 동영상 코너로 변환
 user_url = "https://www.youtube.com/c/DickHunter/featured"
 url_splited = user_url.split('/')
@@ -31,73 +29,56 @@ if url_splited[-1] =='featured':
     user_url = user_url.replace('featured', 'videos') 
     
 driver.get(user_url) 
-time.sleep(5)
+time.sleep(4)
 # 영상 선택 기준
 # step 1) 업로드한 영상 + 정렬기준
 
 def uploaded_videos(sorting_value='인기 동영상'):
-    
     #정렬기준 선택
-    driver.find_element_by_xpath('//*[@id="sort-menu"]/yt-sort-filter-sub-menu-renderer/yt-dropdown-menu').click()
+    try:
+        driver.find_element_by_xpath('//*[@id="sort-menu"]/yt-sort-filter-sub-menu-renderer/yt-dropdown-menu').click()
+        time.sleep(1)
+    except:
+        driver.find_element_by_link_text('정렬 기준').click()
+        time.sleep(1)
+
+    driver.find_element_by_link_text(sorting_value).click()
     time.sleep(1)
-
-    # 추가된 날짜(오래된순)
-    if sorting_value == '추가된 날짜(오래된순)':
-        driver.find_element_by_xpath('//*[@id="menu"]/a[2]').click()
-        time.sleep(1)
-
-    # 추가된 날짜(최신순)
-    elif sorting_value == '추가된 날짜(최신순)':
-        driver.find_element_by_xpath('//*[@id="menu"]/a[3]').click()
-        time.sleep(1)
-
-    else:
-        pass #인기동영상(defalt value)
 
 def videos_select_options(selected_options='업로드한 동영상'):
     
     # 업로드된 동영상 칸 클릭
-    driver.find_element_by_xpath('//*[@id="label"]/paper-ripple').click()
-    
-    
-    # 전체동영상인 경우
-    if selected_options == '전체 동영상':       
-        #전체동영상클릭
-        driver.find_element_by_xpath('//*[@id="menu"]/a[1]/tp-yt-paper-item').click()
-        time.sleep(1)
-        
-    elif selected_options == '이전 실시간 스트림':
-        #이전 실시간 스트림 클릭
-        driver.find_element_by_xpath('//*[@id="menu"]/a[3]/tp-yt-paper-item').click()
-        time.sleep(1)
-    
-    else:
+    driver.find_element_by_xpath('//*[@id="primary-items"]/yt-dropdown-menu').click()
+    time.sleep(1)
+    driver.find_element_by_link_text(selected_options).click()
+    time.sleep(1)
+    if selected_options == '업로드한 동영상':
+        #정렬기준 설정
         uploaded_videos()
-        time.sleep(1)
 
 # 스크롤 내리기
-def scroll_down(driver):
+def scroll_down():
+    
     # 스크롤 높이 가져옴
-    last_height = driver.execute_script("return document.body.scrollHeight")
+    last_height = driver.execute_script("return document.documentElement.scrollHeight")
     print('last_height',last_height)
     while True:
         # 끝까지 스크롤 다운
-        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+        driver.execute_script("window.scrollTo(0, 200000);")
 
         # 1초 대기
         time.sleep(1)
 
         # 스크롤 다운 후 스크롤 높이 다시 가져옴
-        new_height = driver.execute_script("return document.body.scrollHeight")
+        new_height = driver.execute_script("return document.documentElement.scrollHeight")
         print('new_height',new_height)
         if new_height == last_height:
             break
         last_height = new_height
 
-#3. URL 수집 
-# def urls_crawling(counts=np.inf):
-scroll_down(driver)
-print('asd')
+# 비디오 옵션 선택
+videos_select_options()
+
 crawling_count = 100 #np.inf # 특정 갯수 만큼 가져오기
 urls = [] # 전체 url 리스트
 original_url = [] # 일반 동영상 url
@@ -115,11 +96,11 @@ information_all = soup.find('div',{'id':'contents','class':'style-scope ytd-item
 #갯수 파악
 if crawling_count > len(information_all):
     print('갯수 미달로 인한 스크롤')
-    scroll_down(driver) # 스크롤 한번씩 내리기
+    scroll_down() # 스크롤 한번씩 내리기
     
+# URL 수집
 soup = soup_find(driver)
 information_all = soup.find('div',{'id':'contents','class':'style-scope ytd-item-section-renderer'}).find_all('ytd-grid-video-renderer',class_='style-scope ytd-grid-renderer')
-    
 for idx,inform in enumerate(information_all):
     #url
     url = inform.find('a',class_='yt-simple-endpoint inline-block style-scope ytd-thumbnail')['href']
