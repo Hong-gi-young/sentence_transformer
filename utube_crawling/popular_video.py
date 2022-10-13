@@ -16,7 +16,7 @@ from shorts import shorts_crawling
 warnings.filterwarnings('ignore')
 
 chrome_options = webdriver.ChromeOptions()
-# chrome_options.add_argument('--headless')
+chrome_options.add_argument('--headless')
 chrome_options.add_argument('--no-sandbox')
 chrome_options.add_experimental_option('excludeSwitches', ['enable-logging'])
 chrome_options.add_argument('--disable-gpu')  
@@ -29,26 +29,36 @@ driver.get(user_url)
 time.sleep(4)
 
 #인기 급상승 동영상 가져오기
+urls,times=[],[]
 soup = soup_find(driver)
-informations = soup.find({'id':'contents','class':'style-scope ytd-item-section-renderer'}).findAll('ytd-video-renderer',class_='style-scope ytd-expanded-shelf-contents-renderer')
+now = datetime.now()
+informations = soup.findAll('ytd-video-renderer',class_='style-scope ytd-expanded-shelf-contents-renderer')
+# print(informations)
 
 for inform in informations:
     #url
-    url = inform.find('a',{'id':'channel-thumbnail','class':'yt-simple-endpoint inline-block style-scope ytd-thumbnail'})['href']
+    url = inform.find('a',{'id':'thumbnail','class':'yt-simple-endpoint inline-block style-scope ytd-thumbnail'})['href']
     url = "https://www.youtube.com"+url
     urls.append(url)
     
     #유튜버이름
     name = inform.find('a',class_='yt-simple-endpoint style-scope yt-formatted-string').get_text().strip()
     print('name',name)
+    
     #영상제목
     title = inform.find('yt-formatted-string',class_='style-scope ytd-video-renderer').get_text().strip()
     print('title',title)
+
+    #영상길이
+    temp = inform.find('span',{'id':'text','class':'style-scope ytd-thumbnail-overlay-time-status-renderer'}).get_text().strip()
+    print('영상길이',temp)
+    
     #조회수
-    counts = inform.find('span',class_='style-scope ytd-video-meta-block')[0].get_text().strip()
+    counts = inform.find('span',class_='style-scope ytd-video-meta-block').get_text().split(' ')[1].strip()
     print('counts',counts)
+    
     #날짜
-    original_times = inform.find('span',class_='style-scope ytd-video-meta-block')[1].get_text().strip()
+    original_times = inform.find_all('span',class_='style-scope ytd-video-meta-block')[1].get_text().strip()
     
     #날짜 변환
     if "년" in original_times:
