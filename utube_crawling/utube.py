@@ -95,8 +95,8 @@ def translation(text):
     driver.switch_to.window(driver.window_handles[0])
     return tans_text
 
-def one_crawling(url="https://www.youtube.com/watch?v=gS5ZD9D6qHk"):
-    authors,texts,agree_counts,times = [],[],[],[]
+def one_crawling(url="https://www.youtube.com/watch?v=1ADn1foAzvA&t=11s"):
+    authors,texts,agree_counts,times,subscribers = [],[],[],[],[]
     
     #target of crawling
     driver.get(url) #https://www.youtube.com/watch?v=QndOyQtTHUQ
@@ -200,6 +200,15 @@ def one_crawling(url="https://www.youtube.com/watch?v=gS5ZD9D6qHk"):
             second = str(now).split(" ")[0]     
             print("초:",second)
             times.append(second)
+            
+        # #구독여부
+        # try:
+        #     subscriber = comment.find('span',class_='count').get_text().strip()
+        # except:
+        #     subscriber = '미구독자'
+        # print('구독여부',subscriber)
+        # subscribers.append(subscriber)
+        
     print('댓글총 갯수',len(comments))
     information = {'유튜버':name,
                    "구독자":counts,
@@ -217,4 +226,5 @@ def one_crawling(url="https://www.youtube.com/watch?v=gS5ZD9D6qHk"):
     # driver.close()
     return df
 
-# if __name__=='__main__':
+if __name__=='__main__':
+    one_crawling()
