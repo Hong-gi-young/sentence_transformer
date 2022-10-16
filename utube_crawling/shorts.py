@@ -66,9 +66,9 @@ def shorts_scroll(driver):
 # def url_transform():
 # 동영상 코너로 변환
 
-def shorts_crawling():
+def shorts_crawling(user_url):
     authors,texts,agree_counts,times = [],[],[],[]
-    user_url = "https://www.youtube.com/shorts/Rm1IorQTDbk"
+    
     driver.get(user_url) 
     time.sleep(5)
 
