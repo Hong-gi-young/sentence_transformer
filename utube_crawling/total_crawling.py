@@ -22,18 +22,7 @@ chrome_options.add_experimental_option('excludeSwitches', ['enable-logging'])
 chrome_options.add_argument('--disable-gpu')  
 driver = webdriver.Chrome('chromedriver.exe', chrome_options=chrome_options)
 
-# 동영상 코너로 변환
-user_url = "https://www.youtube.com/c/DickHunter/featured"
-url_splited = user_url.split('/')
-if url_splited[-1] =='featured':
-    user_url = user_url.replace('featured', 'videos') 
-    
-driver.get(user_url) 
-time.sleep(4)
-# 영상 선택 기준
-# step 1) 업로드한 영상 + 정렬기준
-
-def uploaded_videos(sorting_value='인기 동영상'):
+def uploaded_videos(sorting_value):
     #정렬기준 선택
     try:
         driver.find_element_by_xpath('//*[@id="sort-menu"]/yt-sort-filter-sub-menu-renderer/yt-dropdown-menu').click()
@@ -45,17 +34,21 @@ def uploaded_videos(sorting_value='인기 동영상'):
     driver.find_element_by_link_text(sorting_value).click()
     time.sleep(1)
 
-def videos_select_options(selected_options='업로드한 동영상'):
+def videos_select_options(sorting_value='인기 동영상',selected_options='업로드한 동영상'):
     
     # 업로드된 동영상 칸 클릭
     driver.find_element_by_xpath('//*[@id="primary-items"]/yt-dropdown-menu').click()
     time.sleep(1)
-    driver.find_element_by_link_text(selected_options).click()
-    time.sleep(1)
-    if selected_options == '업로드한 동영상':
-        #정렬기준 설정
-        uploaded_videos()
-
+    try:
+        driver.find_element_by_link_text(selected_options).click()
+        time.sleep(1)
+        if selected_options == '업로드한 동영상':
+            #정렬기준 설정
+            uploaded_videos(sorting_value)
+    except:
+        uploaded_videos(sorting_value)
+        time.sleep(1)
+        
 # 스크롤 내리기
 def scroll_down():
     
@@ -76,66 +69,67 @@ def scroll_down():
             break
         last_height = new_height
 
-# 비디오 옵션 선택
-videos_select_options()
+def total_video_crawling(user_url = "https://www.youtube.com/c/DickHunter/featured",crawling_count=np.inf):
 
-crawling_count = 100 #np.inf # 특정 갯수 만큼 가져오기
-urls = [] # 전체 url 리스트
-original_url = [] # 일반 동영상 url
-shorts_url = [] # shorts 동영상 url
-total_df = pd.DataFrame()
-soup = soup_find(driver)
-
-#구독자수
-counts = soup.find('yt-formatted-string',{'id':'subscriber-count','class':'style-scope ytd-c4-tabbed-header-renderer'}).get_text().replace('구독자','').strip()
-print('구독자 수:',counts)
-
-#영상 수
-information_all = soup.find('div',{'id':'contents','class':'style-scope ytd-item-section-renderer'}).find_all('ytd-grid-video-renderer',class_='style-scope ytd-grid-renderer')
-
-#갯수 파악
-if crawling_count > len(information_all):
-    print('갯수 미달로 인한 스크롤')
-    scroll_down() # 스크롤 한번씩 내리기
-    
-# URL 수집
-soup = soup_find(driver)
-information_all = soup.find('div',{'id':'contents','class':'style-scope ytd-item-section-renderer'}).find_all('ytd-grid-video-renderer',class_='style-scope ytd-grid-renderer')
-for idx,inform in enumerate(information_all):
-    #url
-    url = inform.find('a',class_='yt-simple-endpoint inline-block style-scope ytd-thumbnail')['href']
-    url = "https://www.youtube.com"+url
-    urls.append(url)
-
-    idx = idx+1 
-    if crawling_count == idx: 
-        break
-    
-
-for url in urls:
-    print(f'{url} 동영상 크롤링 시작')
-    if 'shorts' in url:
-        df = shorts_crawling()
-        shorts_url.append(url) #shorts만 따로 담기
-        df['구독자'] = counts
+    url_splited = user_url.split('/')
+    if url_splited[-1] =='featured':
+        user_url = user_url.replace('featured', 'videos') 
         
-    else:
-        df = one_crawling(url) 
-        original_url.append(url) #일반동영상 따로 담기
-    # concat 실행
-    total_df = pd.concat([total_df,df])
-    print('\n')
+    driver.get(user_url) 
+    time.sleep(4)
     
-    
-total_df.to_excel('total_df.xlsx')
-driver.close()
+    # 업로드한 영상 + 정렬기준
+    videos_select_options()
 
+    urls = [] # 전체 url 리스트
+    original_url = [] # 일반 동영상 url
+    shorts_url = [] # shorts 동영상 url
+    total_df = pd.DataFrame()
+    soup = soup_find(driver)
 
-# def main():
-# total = pd.DataFrame()
-# for url in urls[::]:
-#     # 정보 긁어오기
-#     df = one_crawling(url)
-    
-#     # concat 실행
-#     total_df = pd.concat([total,df])
+    #구독자수
+    counts = soup.find('yt-formatted-string',{'id':'subscriber-count','class':'style-scope ytd-c4-tabbed-header-renderer'}).get_text().replace('구독자','').strip()
+    print('구독자 수:',counts)
+
+    #영상 수
+    information_all = soup.find('div',{'id':'contents','class':'style-scope ytd-item-section-renderer'}).find_all('ytd-grid-video-renderer',class_='style-scope ytd-grid-renderer')
+
+    #갯수 파악
+    if crawling_count > len(information_all):
+        print('갯수 미달로 인한 스크롤')
+        scroll_down() # 스크롤 한번씩 내리기
+        
+    # URL 수집
+    soup = soup_find(driver)
+    information_all = soup.find('div',{'id':'contents','class':'style-scope ytd-item-section-renderer'}).find_all('ytd-grid-video-renderer',class_='style-scope ytd-grid-renderer')
+    for idx,inform in enumerate(information_all):
+        #url
+        url = inform.find('a',class_='yt-simple-endpoint inline-block style-scope ytd-thumbnail')['href']
+        url = "https://www.youtube.com"+url
+        urls.append(url)
+
+        idx = idx+1 
+        if crawling_count == idx: 
+            break
+        
+
+    for url in urls:
+        print(f'{url} 동영상 크롤링 시작')
+        if 'shorts' in url:
+            df = shorts_crawling(url)
+            shorts_url.append(url) #shorts만 따로 담기
+            df['구독자'] = counts
+            
+        else:
+            df = one_crawling(url) 
+            original_url.append(url) #일반동영상 따로 담기
+        # concat 실행
+        total_df = pd.concat([total_df,df])
+        print('\n')
+        
+        
+    total_df.to_excel(f'total_df.xlsx')
+    driver.close()
+
+if __name__ == "__main__":
+    total_video_crawling(user_url ="https://www.youtube.com/c/Amenda_youtube/videos")
