@@ -13,10 +13,9 @@ from selenium.webdriver.common.keys import Keys
 from dateutil.relativedelta import relativedelta
 from utube import *
 from shorts import shorts_crawling
-warnings.filterwarnings('ignore')
 
 chrome_options = webdriver.ChromeOptions()
-# chrome_options.add_argument('--headless')
+chrome_options.add_argument('--headless')
 chrome_options.add_argument('--no-sandbox')
 chrome_options.add_experimental_option('excludeSwitches', ['enable-logging'])
 chrome_options.add_argument('--disable-gpu')  
@@ -116,13 +115,19 @@ def total_video_crawling(user_url = "https://www.youtube.com/c/DickHunter/featur
     for url in urls:
         print(f'{url} 동영상 크롤링 시작')
         if 'shorts' in url:
-            df = shorts_crawling(url)
-            shorts_url.append(url) #shorts만 따로 담기
-            df['구독자'] = counts
+            try:
+                df = shorts_crawling(url)
+                shorts_url.append(url) #shorts만 따로 담기
+                df['구독자'] = counts
+                df['영상구분'] = 'shorts'
+            except:
+                continue
             
         else:
+            
             df = one_crawling(url) 
             original_url.append(url) #일반동영상 따로 담기
+            df['영상구분'] = 'video'
         # concat 실행
         total_df = pd.concat([total_df,df])
         print('\n')
