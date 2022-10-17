@@ -14,7 +14,7 @@ from selenium.webdriver.common.keys import Keys
 from dateutil.relativedelta import relativedelta
 warnings.filterwarnings('ignore')
 chrome_options = webdriver.ChromeOptions()
-# chrome_options.add_argument('--headless')
+chrome_options.add_argument('--headless')
 chrome_options.add_argument('--no-sandbox')
 chrome_options.add_experimental_option('excludeSwitches', ['enable-logging'])
 chrome_options.add_argument('--disable-gpu')  
@@ -128,7 +128,7 @@ def one_crawling(url="https://www.youtube.com/watch?v=1ADn1foAzvA&t=11s"):
     try:
         name = soup.find('div',class_='style-scope ytd-channel-name').find('a',class_='yt-simple-endpoint style-scope yt-formatted-string').get_text()
     except:
-        name = soup.find('yt-formatted-string',class_='style-scope ytd-channel-name complex-string').find('a',class_='yt-simple-endpoint style-scope yt-formatted-string').get_text()
+        name = soup.find('div',{'id':'meta-contents','class':'style-scope ytd-watch-flexy'}).find('a',class_='yt-simple-endpoint style-scope yt-formatted-string').get_text().strip()
     print(name)
 
     # 조회수
@@ -226,5 +226,5 @@ def one_crawling(url="https://www.youtube.com/watch?v=1ADn1foAzvA&t=11s"):
     # driver.close()
     return df
 
-if __name__=='__main__':
-    one_crawling()
+# if __name__=='__main__':
+#     one_crawling()
