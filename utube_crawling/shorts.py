@@ -173,7 +173,8 @@ def shorts_crawling(user_url):
             second = str(now).split(" ")[0]     
             print("초:",second)
             times.append(second)
-    print('댓글총 갯수',len(replies))
+            
+    # print('댓글총 갯수',len(replies))
     information = {'유튜버':name,
                     "영상제목":title,
                     '조회수':view_counts,
