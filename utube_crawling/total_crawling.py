@@ -13,6 +13,8 @@ from selenium.webdriver.common.keys import Keys
 from dateutil.relativedelta import relativedelta
 from utube import *
 from shorts import shorts_crawling
+import urllib
+
 
 chrome_options = webdriver.ChromeOptions()
 chrome_options.add_argument('--headless')
@@ -73,6 +75,9 @@ def total_video_crawling(user_url = "https://www.youtube.com/c/DickHunter/featur
     url_splited = user_url.split('/')
     if url_splited[-1] =='featured':
         user_url = user_url.replace('featured', 'videos') 
+    
+    elif 'videos' not in url_splited:
+        user_url = user_url + '/'+ 'videos'
         
     driver.get(user_url) 
     time.sleep(4)
@@ -111,7 +116,6 @@ def total_video_crawling(user_url = "https://www.youtube.com/c/DickHunter/featur
         if crawling_count == idx: 
             break
         
-
     for url in urls:
         print(f'{url} 동영상 크롤링 시작')
         if 'shorts' in url:
@@ -122,19 +126,17 @@ def total_video_crawling(user_url = "https://www.youtube.com/c/DickHunter/featur
                 df['영상구분'] = 'shorts'
             except:
                 continue
-            
         else:
-            
             df = one_crawling(url) 
             original_url.append(url) #일반동영상 따로 담기
             df['영상구분'] = 'video'
+            
         # concat 실행
         total_df = pd.concat([total_df,df])
         print('\n')
-        
-        
-    total_df.to_excel(f'total_df.xlsx')
+    print('shorts_url',shorts_url, len(shorts_url))
+    total_df.to_excel('total_df.xlsx')
     driver.close()
 
 if __name__ == "__main__":
-    total_video_crawling(user_url ="https://www.youtube.com/c/Amenda_youtube/videos")
+    total_video_crawling(user_url ="https://www.youtube.com/c/%EC%88%A0%EC%A3%BC%EC%84%9C%EC%A3%BCsoju")
